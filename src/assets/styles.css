@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Poker";
+  src: url("/Poker.ttf") format("truetype");
+}
+.font-poker {
+  font-family: "Poker";
+  color: #003366;
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px #21568b;
+  }
+  50% {
+    box-shadow: 0 0 10px #21568b, 0 0 30px #21568b;
+  }
+  100% {
+    box-shadow: 0 0 5px #21568b;
+  }
+}
+
+body {
+  background-color: #003366; /* Dark blue color */
+  background-color: #003366; /* Dark blue color */
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8); /* Subtle shadow effect */
+}
+
+/* Table */
+.table-top {
+  grid-area: top;
+}
+.table-left {
+  grid-area: left;
+}
+.table-right {
+  grid-area: right;
+}
+.table-bottom {
+  grid-area: bottom;
+}
+.board-container {
+  grid-area: board;
+}
+.table-container {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-areas:
+    ". top ."
+    "left board right"
+    ". bottom .";
+  grid-template-rows: 4rem 1fr 4rem;
+  @apply gap-4 w-full;
+}
+
+/* Board */
+#board {
+  @apply w-full h-36 rounded-3xl border-2 border-white border-opacity-10 relative;
+}
+#board.ready {
+  animation: glow 3s linear infinite;
+}
+
+/* Players */
+.player-container {
+  @apply flex flex-col justify-center items-center;
+}
+.player-name {
+  @apply font-bold text-white;
+}
+
+/* Cards */
+.card {
+  @apply w-[3.5rem] h-[5.3rem] mx-1.5 border-2 border-white border-opacity-10 rounded-lg flex justify-center items-center text-[#7501A3] font-bold;
+  @apply transition transform duration-500 rotate-0;
+}
+.card.selected {
+  @apply border-none;
+}
+.card.active {
+  @apply text-white transform transition -translate-y-4;
+  animation: glow 3s linear infinite;
+}
+.card.hide {
+  transform: rotateY(3.142rad);
+}
+#cardDeck .card:hover:not(.active) {
+  @apply text-white transform transition -translate-y-2;
+}
+.card img {
+  background-size: cover;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
