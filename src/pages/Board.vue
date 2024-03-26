@@ -118,7 +118,7 @@
   <!-- Settings -->
   <!-- Icon -->
   <div
-    class="absolute h-14 w-14 p-3 bottom-5 right-5 bg-white rounded shadow-xl cursor-pointer"
+    class="absolute h-14 w-14 p-3 bottom-5 right-5 bg-white rounded shadow-xl cursor-pointer hidden"
     @click="modalSettingsIsOpen = true"
   >
     <IconSettings></IconSettings>
@@ -175,8 +175,14 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  sessionId: {
+    type: String,
+    required: true
+  }
 });
 const { playerName } = toRefs(props);
+let { sessionId } = props;
+sessionId = ref(sessionId);
 const cardsOptions = [1, 2, 3, 5, 8, 13, 21, 999];
 
 let table = ref({});
@@ -197,26 +203,17 @@ function resetTable() {
 }
 resetTable();
 
-
 // Session ID
-let queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-if (!urlParams.get("sessionId")) {
-  const urlParams = new URLSearchParams(window.location.search);
-  urlParams.set("sessionId", Math.random().toString(16).slice(2));
-  window.location.search = urlParams;
-}
 /* Unique internal session id by day */
 const today = new Date();
 const year = today.getFullYear();
 const month = today.getMonth() + 1;
 const day = today.getDate();
-const sessionId = urlParams.get("sessionId") + year + month + day;
-
+sessionId.value = sessionId.value + year + month + day;
 
 // Players
 async function getPlayers() {
-  const playersSnapshot = doc(db, "sessions", sessionId);
+  const playersSnapshot = doc(db, "sessions", sessionId.value);
   onSnapshot(playersSnapshot, (doc) => {
     let activePlayers = [];
     let players = doc.data() || [];
@@ -252,7 +249,7 @@ function resetCards() {
   revealCards();
   Object.keys(cardsByPlayers.value).forEach((n) => {
     setDoc(
-      doc(db, "sessions", sessionId),
+      doc(db, "sessions", sessionId.value),
       {
         [n]: null,
       },
@@ -262,7 +259,7 @@ function resetCards() {
 }
 
 // Settings
-const settingsSnapshot = doc(db, "settings", sessionId);
+const settingsSnapshot = doc(db, "settings", sessionId.value);
 onSnapshot(settingsSnapshot, (doc) => {
   cardsFaceDown.value = doc.data()?.reveal || false;
   if (cardsFaceDown.value) {
@@ -273,7 +270,7 @@ onSnapshot(settingsSnapshot, (doc) => {
 
 function revealCards() {
   setDoc(
-    doc(db, "settings", sessionId),
+    doc(db, "settings", sessionId.value),
     { reveal: !cardsFaceDown.value },
     { merge: true }
   );
@@ -284,7 +281,7 @@ function revealCards() {
 async function changeActiveCard(option) {
   activeCard.value = option;
   setDoc(
-    doc(db, "sessions", sessionId),
+    doc(db, "sessions", sessionId.value),
     {
       [playerName.value]: activeCard.value,
     },
@@ -296,10 +293,10 @@ changeActiveCard(null);
 
 // Cases
 async function getCases() {
-  const casesSnapshot = doc(db, "cases", sessionId);
+  const casesSnapshot = doc(db, "cases", sessionId.value);
   onSnapshot(casesSnapshot, (doc) => {
     casesString.value = doc.data()?.value || "";
-    caseVisible.value = doc.data()?.activeCase;
+    caseVisible.value = doc.data()?.activeCase || 0;
     //caseVisible.value = 0;
   });
 }
@@ -307,7 +304,7 @@ getCases();
 
 async function saveCases() {
   setDoc(
-    doc(db, "cases", sessionId),
+    doc(db, "cases", sessionId.value),
     {
       value: casesString.value,
     },
@@ -326,9 +323,9 @@ function prevCase(){
 }
 async function setActiveCase(){
   setDoc(
-    doc(db, "cases", sessionId),
+    doc(db, "cases", sessionId.value),
     {
-      activeCase: caseVisible.value,
+      activeCase: caseVisible.value || 0,
     },
     { merge: true }
   );
@@ -343,7 +340,7 @@ const cases = computed(() => {
 window.addEventListener("beforeunload", async (event) => {
   event.preventDefault();
   try {
-    const docRef = doc(db, "sessions", sessionId);
+    const docRef = doc(db, "sessions", sessionId.value);
     const docSnapshot = await getDoc(docRef);
     if (docSnapshot.exists()) {
       const data = docSnapshot.data();
